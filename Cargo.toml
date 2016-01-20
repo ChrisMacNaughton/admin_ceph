@@ -1,0 +1,32 @@
+[package]
+name = "admin_ceph"
+version = "0.1.0"
+authors = ["Chris Holcombe <chris.holcombe@canonical.com>", "Chris MacNaughton <chris.macnaughton@canonical.com>"]
+
+[dependencies]
+log = "*"
+simple_logger = "*"
+pcap = "*"
+rustc-serialize = "*"
+ceph = {git = "https://github.com/ChrisMacNaughton/ceph-rs.git"}
+hyper = "0.6.16"
+output_args = {git = "https://github.com/ChrisMacNaughton/ceph_cli_args.git"}
+regex = "*"
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = false
+debug-assertions = false
+codegen-units = 1
+
+# The development profile, used for `cargo build`
+[profile.dev]
+opt-level = 0  # Controls the --opt-level the compiler builds with
+debug = true   # Controls whether the compiler passes `-g`
+rpath = false  # Controls whether the compiler passes `-C rpath`
+lto = false    # Controls `-C lto` for binaries and staticlibs
+debug-assertions = true  # Controls whether debug assertions are enabled
+codegen-units = 1 # Controls whether the compiler passes `-C codegen-units`
+                  # `codegen-units` is ignored when `lto = true`
