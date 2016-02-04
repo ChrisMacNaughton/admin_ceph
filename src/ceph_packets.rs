@@ -49,25 +49,22 @@ pub fn initialize_pcap(message_queue: &Sender<LogMessage>) {
                         Some(result) => {
                             let header = &result.header;
                             // let _ = log_queue.send(LogMessage::new(LogType::CephMessage, json::encode(&result).unwrap() ));
-                            for msg in result.ceph_message.messages.iter() {
-                                match *msg{
-                                    serial::Message::OsdOp(_) =>{
-                                        trace!("logging: {:?}", result);
+                            match result.ceph_message.message{
+                                serial::Message::OsdOp(_) =>{
+                                    trace!("logging: {:?}", result);
 
-                                        let _ = log_queue.send(LogMessage {
-                                            log_type: LogType::CephMessage,
-                                            json_body: json::encode(&msg).unwrap(),
-                                            packet_header: Some(json::encode(&header).unwrap()),
-                                            osd_num: None,
-                                            drive_name: None,
-                                        });
-                                    },
-                                    //TODO: What should we do here?
-                                    //serial::Message::OsdSubop(ref sub_op) => sub_op,
-                                    _ => {}
-                                };
-
-                            }
+                                    let _ = log_queue.send(LogMessage {
+                                        log_type: LogType::CephMessage,
+                                        json_body: json::encode(&result.ceph_message.message).unwrap(),
+                                        packet_header: Some(json::encode(&header).unwrap()),
+                                        osd_num: None,
+                                        drive_name: None,
+                                    });
+                                },
+                                //TODO: What should we do here?
+                                //serial::Message::OsdSubop(ref sub_op) => sub_op,
+                                _ => {}
+                            };
                             // let _ = process_packet(&result.header, &result.ceph_message, &args);
                             // let _ =
                         },

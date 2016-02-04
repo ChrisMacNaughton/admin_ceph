@@ -30,6 +30,6 @@ fn main() {
     ceph_packets::initialize_pcap(&output_sender);
     ceph_osd::initialize_osd_scanner(&output_sender);
     loop {
-        std::thread::sleep_ms(10000);
+        std::thread::sleep(std::time::Duration::new(10, 0));
     }
 }
