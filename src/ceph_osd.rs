@@ -4,6 +4,7 @@ use std::path::Path;
 use std::str::FromStr;
 use std::sync::mpsc::{Sender, Receiver, channel};
 use std::thread;
+use std::time::Duration;
 
 use ceph::{osd_mount_point, get_osd_perf_dump_raw};
 use regex::Regex;
@@ -97,7 +98,7 @@ fn timer_periodic(ms: u32) -> Receiver<()> {
     let (tx, rx) = channel();
     thread::spawn(move || {
         loop {
-            thread::sleep_ms(ms);
+            thread::sleep(Duration::from_millis(ms as u64));
             if tx.send(()).is_err() {
                 break;
             }
