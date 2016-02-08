@@ -2,7 +2,7 @@
 name = "admin_ceph"
 version = "0.1.0"
 dependencies = [
- "ceph 0.3.3",
+ "ceph 0.3.3 (git+https://github.com/ChrisMacNaughton/ceph-rs.git)",
  "hyper 0.6.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "libatasmart 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -53,6 +53,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "ceph"
 version = "0.3.3"
+source = "git+https://github.com/ChrisMacNaughton/ceph-rs.git#82d8c9ce3eccd76c53894e3e3005f448f974ce8d"
 dependencies = [
  "bitflags 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
