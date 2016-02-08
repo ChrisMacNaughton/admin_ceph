@@ -20,7 +20,7 @@ pub fn initialize_pcap(message_queue: &Sender<LogMessage>) {
         let device_name = device.name.clone();
 
         let mut cap = Capture::from_device(device).unwrap() //open the device
-                              .promisc(true)
+                              .promisc(false)
                               //.snaplen(500) //Might need this still if we're losing packets
                               .timeout(100)
                               .open() //activate the handle
