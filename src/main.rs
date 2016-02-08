@@ -20,6 +20,28 @@ mod ceph_monitor;
 mod ceph_osd;
 mod ceph_packets;
 
+#[cfg(test)]
+mod tests{
+    use log::LogLevel;
+    #[test]
+    fn test_parse_file() {
+        let file = r#"
+outputs:
+  - stdout
+  - influx
+influx:
+  host: 127.0.0.1
+  port: 8086
+  user: root
+  password: root
+"#;
+        let args = super::parse(file, LogLevel::Info).unwrap();
+
+        assert_eq!(args.outputs, vec!["stdout", "influx"]);
+        assert_eq!(args.influx.unwrap().port, "8086");
+    }
+}
+
 #[derive(Clone,Debug)]
 pub struct Args {
     pub influx: Option<Influx>,
