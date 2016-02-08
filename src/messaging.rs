@@ -39,13 +39,28 @@ pub fn initialize_sender(args: Args) -> Sender<LogMessage> {
     thread::spawn(move || {
         debug!("Logging thread active");
         loop {
-            match rx.recv() {
-                Ok(msg) => handle_message(msg, &args),//debug!("{:?}", msg),
-                Err(e) => {
-                    error!("Had an error: {:?}", e);
-                    continue
+            std::thread::sleep(std::time::Duration::new(5, 0));
+
+            let mut messages: Vec<Measurement> = vec![];
+            while rx.can_recv(){
+                match rx.recv() {
+                    Ok(msg) => {
+                        messages.push(msg.to_influx())
+                        // handle_message(msg, &args),//debug!("{:?}", msg),
+                    },
+                    Err(e) => {
+                        error!("Had an error: {:?}", e);
+                        continue
+                    }
+                };
+                if messages.len() > 5000 {
+                    send_messages(messages);
+                    messages = vec![];
                 }
-            };
+
+            }
+            send_messages(messages);
+
         }
     });
     tx
