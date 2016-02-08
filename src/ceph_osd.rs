@@ -50,7 +50,7 @@ fn get_osds_with_match() -> Result<Vec<u64>, io::Error> {
     return Ok(osds);
 }
 
-fn get_osds() -> Vec<u64> {
+pub fn get_osds() -> Vec<u64> {
     match get_osds_with_match() {
         Ok(list) => list,
         Err(_) => {

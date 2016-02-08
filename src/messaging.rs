@@ -11,6 +11,7 @@ pub enum LogType {
     CephMessage,
     CephDaemonOsdMessage,
     CephDaemonMonMessage,
+    SmartMessage,
     // CephAdminResponse,
 }
 
@@ -65,6 +66,9 @@ fn handle_message(message: LogMessage, args: &Args) {
         },
         LogType::CephDaemonOsdMessage => {
             handle_daemon_osd_message(&message, args);
+        },
+        LogType::SmartMessage => {
+            handle_smart_message(&message, args);
         },
         // _ => {}
     }
@@ -121,6 +125,14 @@ pub fn handle_daemon_osd_message(message: &LogMessage, args: &Args) {
     }
 }
 
+pub fn handle_smart_message(message: &LogMessage, args: &Args) {
+    if args.influx.is_some() && args.outputs.contains(&"influx".to_string()) {
+        json::handle_smart_message(message, args);
+    }
+    if args.outputs.contains(&"stdout".to_string()) {
+        info!("{:?}", message.json_body);
+    }
+}
 
 mod json {
     use hyper::*;
@@ -140,6 +152,14 @@ mod json {
         let drive_name = message.drive_name.clone().unwrap_or("".to_string());
         let osd_num = message.osd_num.clone().unwrap_or(0);
         let host_string = format!("http://{}:{}/record_ceph?measurement=osd&osd_num={}&drive_name={}&hostname={}", influx.host, influx.port, osd_num, drive_name, super::hostname());
+        send_to_url(&host_string[..], &message.json_body[..]);
+    }
+
+    pub fn handle_smart_message(message: &LogMessage, args: &Args) {
+        let influx = &args.influx.clone().unwrap();
+        let drive_name = message.drive_name.clone().unwrap_or("".to_string());
+        let osd_num = message.osd_num.clone().unwrap_or(0);
+        let host_string = format!("http://{}:{}/record_ceph?measurement=smart&osd_num={}&drive_name={}&hostname={}", influx.host, influx.port, osd_num, drive_name, super::hostname());
         send_to_url(&host_string[..], &message.json_body[..]);
     }
 

@@ -8,10 +8,12 @@ log = "*"
 simple_logger = "*"
 pcap = "*"
 rustc-serialize = "*"
-ceph = {git = "https://github.com/ChrisMacNaughton/ceph-rs.git"}
+# ceph = {git = "https://github.com/ChrisMacNaughton/ceph-rs.git"}
+ceph = {path = "/home/chris/repos/ceph-rs"}
 hyper = "0.6.16"
 output_args = {git = "https://github.com/ChrisMacNaughton/ceph_cli_args.git"}
 regex = "*"
+libatasmart = "*"
 
 [profile.release]
 opt-level = 3

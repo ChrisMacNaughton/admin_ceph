@@ -2,8 +2,9 @@
 name = "admin_ceph"
 version = "0.1.0"
 dependencies = [
- "ceph 0.3.3 (git+https://github.com/ChrisMacNaughton/ceph-rs.git)",
+ "ceph 0.3.3",
  "hyper 0.6.16 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libatasmart 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "output_args 1.0.0 (git+https://github.com/ChrisMacNaughton/ceph_cli_args.git)",
  "pcap 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -52,7 +53,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "ceph"
 version = "0.3.3"
-source = "git+https://github.com/ChrisMacNaughton/ceph-rs.git#f6c4c5f78ac07985a0742cb9a33fe6817a145d70"
 dependencies = [
  "bitflags 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -179,6 +179,23 @@ version = "0.1.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "libatasmart"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "libatasmart-sys 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nix 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "libatasmart-sys"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "libc 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "libc"
 version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -224,6 +241,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "log 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 0.6.11 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "nix"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "bitflags 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

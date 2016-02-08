@@ -1,5 +1,6 @@
 extern crate ceph;
 extern crate hyper;
+extern crate libatasmart;
 #[macro_use] extern crate log;
 extern crate output_args;
 extern crate pcap;
@@ -11,6 +12,7 @@ mod messaging;
 mod ceph_monitor;
 mod ceph_osd;
 mod ceph_packets;
+mod ceph_smart;
 
 fn version() -> String {
     format!("{}.{}.{}{}",
@@ -26,6 +28,7 @@ fn main() {
     simple_logger::init_with_level(args.log_level).unwrap();
     info!("Logging with: {:?}", args);
     let output_sender = messaging::initialize_sender(args.clone());
+    ceph_smart::initialize_monitor_smart(&output_sender);
     ceph_monitor::initialize_monitor_scanner(&output_sender);
     ceph_packets::initialize_pcap(&output_sender);
     ceph_osd::initialize_osd_scanner(&output_sender);
