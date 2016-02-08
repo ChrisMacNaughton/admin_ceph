@@ -2,8 +2,7 @@ use std::process::Command;
 use std::sync::mpsc::{channel, Sender, Receiver};
 use std::thread;
 
-use output_args::Args;
-
+use Args;
 
 #[derive(Debug)]
 pub enum LogType {
@@ -125,7 +124,7 @@ pub fn handle_daemon_osd_message(message: &LogMessage, args: &Args) {
 mod json {
     use hyper::*;
     use hyper::header::ContentType;
-    use output_args::Args;
+    use Args;
     use super::LogMessage;
 
     pub fn handle_daemon_mon_message(message: &LogMessage, args: &Args) {
