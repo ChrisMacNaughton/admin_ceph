@@ -1,21 +1,26 @@
 extern crate ceph;
 #[macro_use] extern crate clap;
 extern crate hyper;
+extern crate influent;
 #[macro_use] extern crate log;
 extern crate pcap;
 extern crate regex;
 extern crate rustc_serialize;
+extern crate serde;
+extern crate serde_json;
 extern crate simple_logger;
+extern crate time;
 extern crate yaml_rust;
 
 use std::fs::File;
 use std::io::prelude::*;
+use std::process::Command;
 
 use clap::{Arg, App};
 use log::LogLevel;
 use yaml_rust::YamlLoader;
 
-mod messaging;
+// mod messaging;
 mod ceph_monitor;
 mod ceph_osd;
 mod ceph_packets;
@@ -49,11 +54,25 @@ pub struct Args {
     pub outputs: Vec<String>,
     pub config_path: String,
     pub log_level: log::LogLevel,
+    pub hostname: String,
 }
 
 struct CliArgs {
     log_level: log::LogLevel,
     config_file: String,
+}
+
+fn hostname() -> String{
+    let output = Command::new("hostname")
+                         .output()
+                         .unwrap_or_else(|e| panic!("failed to execute hostname: {}", e));
+    let host = match String::from_utf8(output.stdout) {
+        Ok(v) => v.replace("\n", ""),
+        Err(_) => "{}".to_string(),
+   };
+   trace!("Got hostname: '{}'", host);
+
+   host
 }
 
 impl Args {
@@ -64,6 +83,7 @@ impl Args {
             outputs: Vec::new(),
             config_path: "".to_string(),
             log_level: LogLevel::Info,
+            hostname: hostname(),
         }
     }
     fn with_log_level(log_level: LogLevel) -> Args {
@@ -73,6 +93,7 @@ impl Args {
             outputs: Vec::new(),
             config_path: "".to_string(),
             log_level: log_level,
+            hostname: hostname(),
         }
     }
 }
@@ -90,10 +111,9 @@ fn main() {
     let args = get_args();
     simple_logger::init_with_level(args.log_level).unwrap();
     info!("Logging with: {:?}", args);
-    let output_sender = messaging::initialize_sender(args.clone());
-    ceph_monitor::initialize_monitor_scanner(&output_sender);
-    ceph_packets::initialize_pcap(&output_sender);
-    ceph_osd::initialize_osd_scanner(&output_sender);
+    ceph_monitor::initialize_monitor_scanner(&args);
+    ceph_packets::initialize_pcap(&args);
+    ceph_osd::initialize_osd_scanner(&args);
     loop {
         std::thread::sleep(std::time::Duration::new(10, 0));
     }
@@ -194,6 +214,7 @@ fn parse(args_string: &str, log_level: LogLevel) -> Result<Args, String> {
         outputs: outputs,
         log_level: log_level,
         config_path: config_path.to_string(),
+        hostname: hostname(),
     })
 }
 
