@@ -1,11 +1,6 @@
-addons:
-  apt:
-    packages:
-      - libpcap-dev
-      - libcurl4-openssl-dev
-      - libelf-dev
-      - libdw-dev
-      - libatasmart4
+before_install:
+    - sudo apt-get update -qq
+    - sudo apt-get install -qq libatasmart-dev libpcap-dev libcurl4-openssl-dev libelf-dev libdw-dev
 language: rust
 rust:
   - nightly
@@ -29,4 +24,4 @@ script:
       travis-cargo test
 after_success:
   - travis-cargo coveralls --no-sudo
-sudo: false
+sudo: required
