@@ -1,62 +1,135 @@
+use Args;
 use ceph::osd::mount_point;
 use ceph_osd::get_osds;
+use influent::measurement::{Measurement, Value};
+use influent::create_client;
+use influent::client::{Credentials, Precision, Client};
 use libatasmart::Disk;
-use messaging::LogMessage;
-use messaging::LogType;
+
 use std::path::Path;
-use std::sync::mpsc::{Sender, Receiver, channel};
+use std::sync::mpsc::{Receiver, channel};
 use std::thread;
 use std::time::Duration;
+use time;
 
-pub fn initialize_monitor_smart(message_queue: &Sender<LogMessage>) {
-    let log_queue: Sender<LogMessage> = message_queue.clone();
+pub fn initialize_monitor_smart(args: &Args) {
+    let args = args.clone();
     thread::spawn(move || {
-            debug!("Monitor smart active");
-            let periodic = timer_periodic(5000);
+        let hostname: &str = &args.hostname[..];
+        let mut user = String::new();
+        let mut password = String::new();
+        let credentials: Credentials;
+        let host: String;
+        let mut hosts: Vec<&str> = vec![];
 
-            let mut osd_list = get_osds();
-            debug!("OSDs on this host: {:?}", osd_list);
-            let mut i = 0;
-            loop {
-                trace!("Going around OSD loop again!");
-                i = i + 1;
-                for osd_num in osd_list.clone().iter(){
-                    match mount_point(osd_num){
-                        Some(drive_name) => {
-                            let mut smart_ata = Disk::new(Path::new(&drive_name)).unwrap();
-                            let smart_data = smart_ata.get_smart_status();
-                            match smart_data{
-                                Ok(d) => {
-                                    let json_body = format!(r#"{{{}}}"#, d);
-                                    let _ = log_queue.send(LogMessage{
-                                        log_type: LogType::SmartMessage,
-                                        json_body: json_body,
-                                        osd_num: Some(*osd_num),
-                                        drive_name: Some(drive_name),
-                                        packet_header: None
-                                    });
-                                },
-                                //TODO: Should we log smart ata errors?
-                                Err(_) => continue,
-                            }
-                        },
-                        None => continue,
-                    }
+        let do_influx = args.influx.is_some() && args.outputs.contains(&"influx".to_string());
+        let influx = args.influx;
+        let client = if do_influx {
+            let influx = influx.unwrap();
+            user = influx.user.clone();
+            password = influx.password.clone();
+            credentials = Credentials {
+                username: &user[..],
+                password: &password[..],
+                database: "ceph"
+            };
+            host = format!("http://{}:{}", influx.host, influx.port);
+            hosts = vec![&host[..]];
+            create_client(credentials, hosts)
+        } else {
+            credentials = Credentials {
+                username: &user[..],
+                password: &password[..],
+                database: "",
+            };
+            create_client(credentials, hosts)
+        };
+
+        debug!("Monitor smart active");
+        //Run this every 30 minutes
+        let periodic = timer_periodic(1800);
+
+        let mut osd_list = get_osds();
+        debug!("OSDs on this host: {:?}", osd_list);
+        let mut i = 0;
+        loop {
+            trace!("Checking OSD smartata data again!");
+            i = i + 1;
+            for osd_num in osd_list.clone().iter(){
+                match mount_point(osd_num){
+                    Some(drive_name) => {
+                        if do_influx {
+                            let osd_num = format!("{}", osd_num);
+                            log_to_influx(&client, hostname, &drive_name[..], &osd_num[..]);
+                        }
+                    },
+                    None => continue,
                 }
-                osd_list = match i % 10 {
-                    0 => get_osds(),
-                    _ => osd_list,
-                };
-                let _ = periodic.recv();
             }
-        });
+            osd_list = match i % 10 {
+                0 => get_osds(),
+                _ => osd_list,
+            };
+            let _ = periodic.recv();
+        }
+    });
 }
 
-fn timer_periodic(ms: u32) -> Receiver<()> {
+fn log_to_influx(client: &Client, hostname: &str, drive_name: &str, osd_num: &str) {
+    //Query the drive for smart status
+    let mut smart_ata = match Disk::new(Path::new(&drive_name)){
+        Ok(s) => s,
+        Err(e) => {
+            let mut measurement = Measurement::new("smart");
+            measurement.set_timestamp(time::now().to_timespec().sec as i32);
+            measurement.add_tag("hostname", hostname);
+            measurement.add_tag("disk", drive_name);
+            measurement.add_tag("osd_num", osd_num);
+            measurement.add_field("error", Value::String(&e));
+
+            let _ = client.write_one(measurement, Some(Precision::Seconds));
+            return;
+        },
+    };
+    let smart_data = smart_ata.get_smart_status();
+    let temperature = smart_ata.get_temperature();
+    let power_on_time = smart_ata.get_power_on();
+    let overall_status = smart_ata.smart_get_overall();
+
+    match smart_data{
+        Ok(smart_ok) => {
+            let mut measurement = Measurement::new("smart");
+            measurement.set_timestamp(time::now().to_timespec().sec as i32);
+            measurement.add_tag("hostname", hostname);
+            measurement.add_tag("disk", drive_name);
+            measurement.add_tag("osd_num", osd_num);
+            measurement.add_field("smart_status", Value::Boolean(smart_ok));
+            measurement.add_field("temperature_mkelvin", Value::Integer(
+                temperature.unwrap_or(0 as u64) as i64));
+            measurement.add_field("power_on_time", Value::Integer(
+                power_on_time.unwrap_or(0 as u64) as i64));
+
+            //Check if the smart status is bad
+            if !smart_ok{
+                //Investigate the smart drive failure
+                //measurement.add_field("overall_status", Value::String(
+                //    overall_status.unwrap_or("")));
+
+                //Possibly start migrating the data off the drive
+            }
+
+            let _ = client.write_one(measurement, Some(Precision::Seconds));
+        },
+        //TODO: Should we log smart ata errors?
+        Err(_) => {},
+    }
+}
+
+fn timer_periodic(seconds: u32) -> Receiver<()> {
     let (tx, rx) = channel();
     thread::spawn(move || {
         loop {
-            thread::sleep(Duration::from_millis(ms as u64));
+            thread::sleep(Duration::from_secs(seconds as u64));
             if tx.send(()).is_err() {
                 break;
             }

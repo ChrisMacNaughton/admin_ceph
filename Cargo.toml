@@ -4,15 +4,21 @@ version = "0.1.0"
 authors = ["Chris Holcombe <chris.holcombe@canonical.com>", "Chris MacNaughton <chris.macnaughton@canonical.com>"]
 
 [dependencies]
+influent = "0.2"
 log = "*"
 simple_logger = "*"
 pcap = "*"
+clap = "*"
+yaml-rust = "*"
 rustc-serialize = "*"
 ceph = {git = "https://github.com/ChrisMacNaughton/ceph-rs.git"}
 hyper = "0.6.16"
-output_args = {git = "https://github.com/ChrisMacNaughton/ceph_cli_args.git"}
 regex = "*"
 libatasmart = "*"
+serde = "*"
+serde_json = "*"
+serde_macros = "*"
+time = "*"
 
 [profile.release]
 opt-level = 3
