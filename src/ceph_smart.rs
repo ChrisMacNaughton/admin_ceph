@@ -95,6 +95,7 @@ fn log_to_influx(client: &Client, hostname: &str, drive_name: &str, osd_num: &st
     let temperature = smart_ata.get_temperature();
     let power_on_time = smart_ata.get_power_on();
     let overall_status = smart_ata.smart_get_overall();
+    let bad_sector_count = smart_ata.get_bad_sectors();
 
     match smart_data{
         Ok(smart_ok) => {
@@ -106,18 +107,11 @@ fn log_to_influx(client: &Client, hostname: &str, drive_name: &str, osd_num: &st
             measurement.add_field("smart_status", Value::Boolean(smart_ok));
             measurement.add_field("temperature_mkelvin", Value::Integer(
                 temperature.unwrap_or(0 as u64) as i64));
+            measurement.add_field("bad_sector_count", Value::Integer(
+                bad_sector_count.unwrap_or(0 as u64) as i64));
             measurement.add_field("power_on_time", Value::Integer(
                 power_on_time.unwrap_or(0 as u64) as i64));
-
-            //Check if the smart status is bad
-            if !smart_ok{
-                //Investigate the smart drive failure
-                //measurement.add_field("overall_status", Value::String(
-                //    overall_status.unwrap_or("")));
-
-                //Possibly start migrating the data off the drive
-            }
-
+                
             let _ = client.write_one(measurement, Some(Precision::Seconds));
         },
         //TODO: Should we log smart ata errors?
