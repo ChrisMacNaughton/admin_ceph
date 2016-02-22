@@ -80,6 +80,7 @@ fn log_to_influx(client: &Client, hostname: &str, drive_name: &str, osd_num: &st
     let mut smart_ata = match Disk::new(Path::new(&drive_name)){
         Ok(s) => s,
         Err(e) => {
+            //This could mean that the drive is dead
             let mut measurement = Measurement::new("smart");
             measurement.set_timestamp(time::now().to_timespec().sec as i32);
             measurement.add_tag("hostname", hostname);
@@ -111,11 +112,19 @@ fn log_to_influx(client: &Client, hostname: &str, drive_name: &str, osd_num: &st
                 bad_sector_count.unwrap_or(0 as u64) as i64));
             measurement.add_field("power_on_time", Value::Integer(
                 power_on_time.unwrap_or(0 as u64) as i64));
-                
+
             let _ = client.write_one(measurement, Some(Precision::Seconds));
         },
-        //TODO: Should we log smart ata errors?
-        Err(_) => {},
+        Err(_) => {
+            let mut measurement = Measurement::new("smart");
+            measurement.set_timestamp(time::now().to_timespec().sec as i32);
+            measurement.add_tag("hostname", hostname);
+            measurement.add_tag("disk", drive_name);
+            measurement.add_tag("osd_num", osd_num);
+            measurement.add_field("smart_data_collection_error", Value::String(&e));
+
+            let _ = client.write_one(measurement, Some(Precision::Seconds));
+        },
     }
 }
 
