@@ -17,5 +17,5 @@ stages:
 test-nightly:
   script:
     - curl -sSf https://static.rust-lang.org/rustup.sh | sh -s -- -y --disable-sudo --channel=nightly
-    - cargo build --release --verbose
+    - cargo build --verbose
     - cargo test --verbose
