@@ -362,7 +362,7 @@ mod influx {
         match MonMeasurement::from_json(json) {
             Some(mon_m) => {
                 let mut measurement = Measurement::new("mon_daemon");
-                measurement.set_timestamp(time::now().to_timespec().sec as i32);
+                measurement.set_timestamp(time::now().to_timespec().sec);
                 measurement.add_tag("type", "monitor");
                 measurement.add_tag("hostname", hostname);
 

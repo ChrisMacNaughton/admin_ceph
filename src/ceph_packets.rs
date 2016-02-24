@@ -125,7 +125,7 @@ fn log_to_influx(msg: CephMessageWithHeader, client: &Client, hostname: &str) {
             let src_addr = msg.header.src_addr.ip_address();
             let dst_addr = msg.header.dst_addr.ip_address();
             let mut measurement = Measurement::new("osd_operation");
-            measurement.set_timestamp(time::now().to_timespec().sec as i32);
+            measurement.set_timestamp(time::now().to_timespec().sec);
             measurement.add_tag("type", "osd_op");
             measurement.add_tag("hostname", hostname);
             measurement.add_tag("src_ip", &src_addr[..]);

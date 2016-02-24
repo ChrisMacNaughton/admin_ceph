@@ -252,7 +252,7 @@ mod influx {
             Some(osd_m) => {
                 let mut measurement = Measurement::new("osd_daemon");
                 measurement.add_tag("type", "osd");
-                measurement.set_timestamp(time::now().to_timespec().sec as i32);
+                measurement.set_timestamp(time::now().to_timespec().sec);
                 measurement.add_tag("hostname", hostname);
                 measurement.add_tag("osd_num", osd_num);
                 measurement.add_tag("drive_name", drive_name);

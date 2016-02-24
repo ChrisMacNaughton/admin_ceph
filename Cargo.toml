@@ -12,7 +12,7 @@ clap = "*"
 yaml-rust = "*"
 rustc-serialize = "*"
 ceph = {git = "https://github.com/ChrisMacNaughton/ceph-rs.git"}
-hyper = "0.6.16"
+hyper = "0.7"
 regex = "*"
 serde = "*"
 serde_json = "*"
