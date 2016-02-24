@@ -1,1 +1,1 @@
-# [![Build Status](https://travis-ci.org/CanonicalLtd/admin_ceph.svg?branch=master)](https://travis-ci.org/CanonicalLtd/admin_ceph)
+# [![Build Status](https://git.cmacinfo.com/chris/admin_ceph/badges/master/build.svg)](https://git.cmacinfo.com/chris/admin_ceph/builds)
